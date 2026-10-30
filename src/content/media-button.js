@@ -2,6 +2,7 @@
   if (globalThis.__sdmMediaButton) return;
   globalThis.__sdmMediaButton = true;
 
+  
   const MARGIN = 8;
   const HIDE_DELAY = 2500;
   const ICON = '<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M11 3h2v10.2l3.6-3.6 1.4 1.4-6 6-6-6 1.4-1.4 3.6 3.6V3zM4 19h16v2H4z"/></svg>';

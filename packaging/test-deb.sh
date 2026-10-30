@@ -8,6 +8,7 @@ FFPROBE=${FFPROBE:-$(dirname "$FFMPEG")/ffprobe}
 DEB=$(ls "$ROOT"/dist/sdm-download-manager_*_all.deb | tail -1)
 ID=$(cat "$ROOT/dist/extension-id.txt")
 
+
 docker build -q -t sdm-deb-test "$HERE/test" >/dev/null
 docker run --rm \
   -v "$DEB:/pkg/sdm.deb:ro" \

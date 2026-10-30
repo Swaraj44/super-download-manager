@@ -35,6 +35,7 @@ npm run test:win -- --extension "$env:LOCALAPPDATA\SDM\extension" --id beledmllp
 
 This starts headless Edge and checks the fixed ID, the background worker, the helper connection through the registry entry, and a download to `SDM\Compressed`. Set `--browser` to point at `chrome.exe`, and add `--expect-ffmpeg` when FFmpeg is installed.
 
+
 ## Linux
 
 The `.deb` package installs the extension through browser policy, so it works **without Developer mode**. It also registers the optional native helper for FFmpeg and yt-dlp.
