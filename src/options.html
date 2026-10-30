@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>PDM Options</title>
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+  <main>
+    <h1>Personal Download Manager — Options</h1>
+    <form id="options">
+      <fieldset>
+        <legend>Capture</legend>
+        <label><input type="checkbox" name="enabled" /> Capture browser downloads that match the rules below</label>
+        <label>File types to capture <small>(space or comma separated)</small>
+          <textarea name="fileTypes" rows="4"></textarea>
+        </label>
+        <label>Minimum size (KB) <small>(0 = no limit; unknown sizes always pass)</small>
+          <input type="number" name="minSizeKB" min="0" step="1" />
+        </label>
+        <label>Excluded sites <small>(one per line: <code>example.com</code>, <code>*.cdn.net</code>, <code>example.com/media/*</code>)</small>
+          <textarea name="excludedSites" rows="5"></textarea>
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Saving</legend>
+        <label>Base folder inside Downloads <small>(empty = Downloads root)</small>
+          <input type="text" name="baseFolder" />
+        </label>
+        <label><input type="checkbox" name="useCategoryFolders" /> Sort into category folders (Video, Music, Documents, Compressed, Programs, Images, Other)</label>
+      </fieldset>
+      <fieldset>
+        <legend>Media</legend>
+        <label><input type="checkbox" name="mediaButton" /> Show a Download button on video and audio players</label>
+      </fieldset>
+      <fieldset>
+        <legend>Queue</legend>
+        <label>Maximum simultaneous downloads
+          <input type="number" name="maxConcurrent" min="1" max="10" step="1" />
+        </label>
+      </fieldset>
+      <div class="buttons">
+        <button type="submit">Save</button>
+        <button type="button" id="reset">Restore defaults</button>
+        <span id="status" role="status"></span>
+      </div>
+    </form>
+  </main>
+  <script type="module" src="options.js"></script>
+</body>
+</html>

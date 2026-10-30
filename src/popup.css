@@ -1,0 +1,31 @@
+body { width: 380px; margin: 0; font: 13px system-ui, sans-serif; color: #222; }
+header { padding: 10px; border-bottom: 1px solid #ddd; }
+.title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+h1 { font-size: 15px; margin: 0; flex: 1; }
+h2 { font-size: 12px; margin: 0; padding: 6px 10px; background: #f3f3f3; color: #555; }
+.toggle { font-size: 12px; display: flex; align-items: center; gap: 3px; }
+form { display: flex; gap: 6px; }
+input[type="url"] { flex: 1; padding: 4px 6px; }
+#error { color: #b00020; margin: 6px 0 0; }
+ul { list-style: none; margin: 0; padding: 0; }
+#list { max-height: 420px; overflow-y: auto; }
+li { padding: 8px 10px; border-bottom: 1px solid #eee; }
+#queue li { display: flex; align-items: center; gap: 6px; padding: 4px 10px; }
+#queue .url { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #555; }
+.name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 0 5px; margin-right: 4px; border-radius: 3px; background: #e3ecfa; color: #1a4fa0; }
+.meta { color: #666; font-size: 12px; margin: 2px 0 4px; }
+progress { width: 100%; height: 6px; }
+.actions { display: flex; gap: 4px; margin-top: 4px; }
+button { font-size: 11px; padding: 2px 6px; }
+#empty { padding: 16px; text-align: center; color: #888; }
+#convert, #ytdl { border-bottom: 1px solid #ddd; }
+#ytdl summary, #convert summary { font-size: 12px; font-weight: 600; padding: 6px 10px; background: #f3f3f3; color: #555; cursor: pointer; }
+#convert-status, #yt-status, #yt-info { margin: 6px 10px; font-size: 12px; color: #555; }
+.err, #convert-status.err, #yt-status.err { color: #b00020; }
+form.conv label.wide { flex: 1 1 100%; }
+form.conv input[type="url"] { width: 100%; box-sizing: border-box; font-size: 12px; }
+form.conv label[hidden] { display: none; }
+form.conv { flex-wrap: wrap; align-items: flex-end; padding: 4px 10px 8px; }
+form.conv label { display: flex; flex-direction: column; flex: 1 1 110px; min-width: 0; gap: 2px; font-size: 11px; color: #555; }
+form.conv select { width: 100%; font-size: 12px; }

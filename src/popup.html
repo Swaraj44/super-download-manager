@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Personal Download Manager</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <div class="title-row">
+      <h1>Downloads</h1>
+      <label class="toggle" title="Capture matching browser downloads"><input id="capture" type="checkbox" /> Capture</label>
+      <button id="open-options" type="button">Options</button>
+    </div>
+    <form id="add-form">
+      <input id="url" type="url" placeholder="Paste a URL to download" required />
+      <button type="submit">Add</button>
+    </form>
+    <p id="error" hidden></p>
+  </header>
+  <section id="queue-section" hidden>
+    <h2>Queued (<span id="queue-count">0</span>)</h2>
+    <ul id="queue"></ul>
+  </section>
+  <details id="ytdl">
+    <summary>Download video / audio (yt-dlp)</summary>
+    <p id="yt-status" role="status"></p>
+    <form id="yt-probe" class="conv">
+      <label class="wide">Page URL <input name="url" type="url" placeholder="https://www.youtube.com/watch?v=…" required /></label>
+      <button type="submit">Get formats</button>
+    </form>
+    <p id="yt-info" hidden></p>
+    <form id="yt-form" class="conv">
+      <label>Type <select name="mode"><option value="video">Video + audio</option><option value="audio">Audio only</option></select></label>
+      <label data-for="video">Quality <select name="quality"></select></label>
+      <label data-for="video">Format <select name="container"><option value="mp4">MP4 (H.264/AAC)</option><option value="mkv">MKV (best codec)</option><option value="webm">WebM (VP9/Opus)</option></select></label>
+      <label data-for="audio" hidden>Audio <select name="audioFormat"><option value="m4a">M4A (no re-encode)</option><option value="opus">Opus (no re-encode)</option><option value="mp3">MP3</option><option value="best">Original</option></select></label>
+      <button type="submit" disabled>Download</button>
+    </form>
+    <ul id="yt-jobs"></ul>
+  </details>
+  <details id="convert">
+    <summary>Merge / extract audio (FFmpeg)</summary>
+    <p id="convert-status" role="status"></p>
+    <form id="merge-form" class="conv">
+      <label>Video <select name="videoId"></select></label>
+      <label>Audio <select name="audioId"></select></label>
+      <label>Format <select name="container"><option value="mp4">MP4</option><option value="mkv">MKV</option><option value="webm">WebM</option></select></label>
+      <button type="submit" disabled>Merge</button>
+    </form>
+    <form id="extract-form" class="conv">
+      <label>File <select name="inputId"></select></label>
+      <label>Audio <select name="format"><option value="mp3">MP3</option><option value="m4a">M4A</option><option value="opus">Opus</option></select></label>
+      <button type="submit" disabled>Extract</button>
+    </form>
+    <ul id="converts"></ul>
+  </details>
+  <ul id="list"></ul>
+  <p id="empty" hidden>No downloads yet.</p>
+  <script type="module" src="popup.js"></script>
+  <script type="module" src="convert-panel.js"></script>
+  <script type="module" src="yt-panel.js"></script>
+</body>
+</html>

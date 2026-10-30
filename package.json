@@ -1,0 +1,15 @@
+{
+  "name": "pdm-extension",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.js\"",
+    "smoke": "node scripts/smoke.mjs",
+    "integration": "node scripts/youtube-integration.mjs",
+    "ytdlp-live": "node scripts/ytdlp-live.mjs",
+    "build:deb": "node packaging/build-deb.mjs",
+    "test:deb": "sh packaging/test-deb-sandbox.sh",
+    "check": "for f in src/*.js src/lib/*.js src/content/*.js tests/*.js tests/helpers/*.js scripts/*.mjs native/*.mjs packaging/*.mjs packaging/test/*.mjs; do node --check \"$f\" || exit 1; done && node -e \"JSON.parse(require('fs').readFileSync('manifest.json','utf8'))\" && echo check-ok"
+  }
+}
