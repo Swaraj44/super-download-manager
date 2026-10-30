@@ -9,6 +9,7 @@ const DIRS = [
   ["scripts", ".mjs"], ["native", ".mjs"], ["packaging", ".mjs"], ["packaging/test", ".mjs"],
 ];
 
+
 let failed = false;
 for (const [dir, ext] of DIRS) {
   const full = join(ROOT, dir);

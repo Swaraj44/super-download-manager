@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+
 const EXT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CHROME = process.env.CHROME_BIN || "google-chrome";
 const TIMEOUT_MS = 20000;

@@ -7,6 +7,7 @@ ID=$(cat "$ROOT/dist/extension-id.txt")
 R=$(mktemp -d /tmp/sdm-deb-root.XXXXXX)
 trap 'rm -rf "$R"' EXIT
 
+
 mkdir -p "$R/var/lib/dpkg/info" "$R/var/lib/dpkg/updates"
 touch "$R/var/lib/dpkg/status" "$R/var/lib/dpkg/available"
 DPKG="dpkg --root=$R --force-not-root --force-script-chrootless --log=/dev/null"

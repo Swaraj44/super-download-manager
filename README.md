@@ -4,6 +4,7 @@ Developed by Swaraj.
 
 A lightweight Manifest V3 browser extension for Chrome and Edge. It captures browser downloads that match your rules, sorts them into category folders and runs manual downloads through a queue with a concurrency limit. Everything is built on the `chrome.downloads` API. An optional native helper adds FFmpeg (merge, extract audio) and yt-dlp (pick-your-quality video + audio, or audio only).
 
+
 ## Quick Start
 
 On Debian/Ubuntu-based Linux, install the `.deb` package instead. It works without Developer mode. See [INSTALL.md](INSTALL.md).

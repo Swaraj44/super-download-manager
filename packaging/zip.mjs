@@ -6,6 +6,7 @@ const CRC_TABLE = new Int32Array(256).map((_, n) => {
   return c;
 });
 
+
 export function crc32(buf) {
   let c = -1;
   for (const b of buf) c = CRC_TABLE[(c ^ b) & 0xff] ^ (c >>> 8);

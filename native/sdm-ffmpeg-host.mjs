@@ -2,6 +2,7 @@
 import { createHost, encodeMessage, MessageReader, resolveFfmpeg } from "./ffmpeg-host-lib.mjs";
 import { resolveOutputDir, resolveYtdlp } from "./ytdlp-lib.mjs";
 
+
 const log = (text) => process.stderr.write(`sdm-ffmpeg-host: ${text}\n`);
 const host = createHost({
   ffmpeg: resolveFfmpeg(process.env),
