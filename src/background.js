@@ -11,9 +11,9 @@ import {
 } from "./lib/media.js";
 import { extFromFilename, extFromUrl, STREAM_EXTENSIONS } from "./lib/mime.js";
 
-const MENU_ID = "pdm-download";
+const MENU_ID = "sdm-download";
 const EXTENSION_ONLY = new Set([
-  "pdm:add", "pdm:getState", "pdm:setSettings", "pdm:removeJob", "pdm:converterStatus", "pdm:convert", "pdm:cancelConvert", "pdm:ytProbe",
+  "sdm:add", "sdm:getState", "sdm:setSettings", "sdm:removeJob", "sdm:converterStatus", "sdm:convert", "sdm:cancelConvert", "sdm:ytProbe",
 ]);
 const YT_STATUS_TTL = 60000;
 const MAX_FINISHED_CONVERTS = 10;
@@ -101,7 +101,7 @@ async function markSabr(tabId) {
   if (sabrTabs.has(tabId)) return;
   sabrTabs.add(tabId);
   await chrome.storage.session.set({ [sabrKey(tabId)]: true });
-  chrome.tabs.sendMessage(tabId, { type: "pdm:mediaFound", count: 0 }).catch(() => {});
+  chrome.tabs.sendMessage(tabId, { type: "sdm:mediaFound", count: 0 }).catch(() => {});
 }
 
 async function tabUsesSabr(tabId) {
@@ -114,7 +114,7 @@ async function recordMedia(tabId, entry) {
   const list = await getTabMedia(tabId);
   addMedia(list, entry);
   await chrome.storage.session.set({ [mediaKey(tabId)]: list });
-  chrome.tabs.sendMessage(tabId, { type: "pdm:mediaFound", count: list.length }).catch(() => {});
+  chrome.tabs.sendMessage(tabId, { type: "sdm:mediaFound", count: list.length }).catch(() => {});
 }
 
 function validateMediaUrl(url) {
@@ -268,49 +268,49 @@ async function handleMessage(msg, sender) {
   if (EXTENSION_ONLY.has(msg?.type) && !fromExtensionPage(sender)) throw new Error("Forbidden");
   await ready;
   switch (msg?.type) {
-    case "pdm:add":
+    case "sdm:add":
       return { url: await enqueueUrl(msg.url) };
-    case "pdm:getState":
+    case "sdm:getState":
       return { settings, queue: queue.toJSON(), converts: [...converts.values()].map((j) => ({ ...j })) };
-    case "pdm:setSettings":
+    case "sdm:setSettings":
       settings = await saveSettings({ ...settings, ...msg.patch });
       await persistQueue();
       await pump();
       return settings;
-    case "pdm:removeJob": {
+    case "sdm:removeJob": {
       const removed = queue.remove(msg.id);
       await persistQueue();
       return { removed };
     }
-    case "pdm:mediaConfig":
+    case "sdm:mediaConfig":
       return { enabled: settings.mediaButton };
-    case "pdm:getMedia": {
+    case "sdm:getMedia": {
       const tabId = sender.tab?.id;
       const sniffed = Number.isInteger(tabId) && tabId >= 0 ? await getTabMedia(tabId) : [];
       return buildMediaMenu(msg.elementUrls, sniffed);
     }
-    case "pdm:mediaStatus": {
+    case "sdm:mediaStatus": {
       const tabId = sender.tab?.id;
       return { sabr: Number.isInteger(tabId) && tabId >= 0 ? await tabUsesSabr(tabId) : false };
     }
-    case "pdm:downloadMedia":
+    case "sdm:downloadMedia":
       return downloadMedia(msg, sender);
-    case "pdm:converterStatus":
+    case "sdm:converterStatus":
       return converterStatus();
-    case "pdm:convert":
+    case "sdm:convert":
       return startConvert(msg);
-    case "pdm:cancelConvert":
+    case "sdm:cancelConvert":
       return cancelConvert(msg.id);
-    case "pdm:ytAvailable":
+    case "sdm:ytAvailable":
       return { available: await ytAvailable() };
-    case "pdm:ytPresets": {
+    case "sdm:ytPresets": {
       if (!isYtdlpSite(sender.tab?.url)) return { available: false, presets: [] };
       const available = await ytAvailable();
       return { available, presets: available ? YT_PRESETS.map((p) => ({ ...p })) : [] };
     }
-    case "pdm:ytProbe":
+    case "sdm:ytProbe":
       return ytProbe(msg, sender);
-    case "pdm:ytDownload":
+    case "sdm:ytDownload":
       return startYtDownload(msg, sender);
     default:
       throw new Error(`Unknown message: ${msg?.type}`);
@@ -352,7 +352,7 @@ function targetFor(item) {
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: MENU_ID,
-    title: "Download with PDM",
+    title: "Download with SDM",
     contexts: ["link", "image", "video", "audio"],
   });
 });

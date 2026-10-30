@@ -96,18 +96,18 @@ test("downloading a YouTube video-only track also queues its audio, with titled 
   await sniff(m, AUDIO);
   await sniff(m, VIDEO);
   const sender = m.senders.tab(7, "https://www.youtube.com/watch?v=abc");
-  const menu = (await m.sendMessage({ type: "pdm:getMedia", elementUrls: [] }, sender)).result;
-  const res = await m.sendMessage({ type: "pdm:downloadMedia", url: menu[0].url, title: "Cats - YouTube" }, sender);
+  const menu = (await m.sendMessage({ type: "sdm:getMedia", elementUrls: [] }, sender)).result;
+  const res = await m.sendMessage({ type: "sdm:downloadMedia", url: menu[0].url, title: "Cats - YouTube" }, sender);
   assert.equal(res.ok, true);
   assert.equal(res.result.urls.length, 2);
   assert.equal(m.calls.downloads.length, 2);
 
   const names = [];
   for (const [i, d] of m.calls.downloads.entries()) {
-    const s = await m.determine({ id: 50 + i, url: d.url, finalUrl: d.url, filename: "videoplayback", mime: "", byExtensionId: "pdm-test", totalBytes: 0 });
+    const s = await m.determine({ id: 50 + i, url: d.url, finalUrl: d.url, filename: "videoplayback", mime: "", byExtensionId: "sdm-test", totalBytes: 0 });
     names.push(s.filename);
   }
-  assert.deepEqual(names, ["PDM/Video/Cats [1080p video].mp4", "PDM/Music/Cats [128k audio].m4a"]);
+  assert.deepEqual(names, ["SDM/Video/Cats [1080p video].mp4", "SDM/Music/Cats [128k audio].m4a"]);
 });
 
 test("downloading a muxed YouTube stream queues a single file", async () => {
@@ -116,7 +116,7 @@ test("downloading a muxed YouTube stream queues a single file", async () => {
   await sniff(m, MUXED);
   const sender = m.senders.tab(7, "https://www.youtube.com/watch?v=abc");
   const url = parseYouTubeStream(MUXED).url;
-  const res = await m.sendMessage({ type: "pdm:downloadMedia", url, title: "Cats" }, sender);
+  const res = await m.sendMessage({ type: "sdm:downloadMedia", url, title: "Cats" }, sender);
   assert.deepEqual(res.result.urls, [url]);
 });
 test("isYouTubeSabr detects sabr=1 and POST videoplayback requests only", () => {
@@ -131,17 +131,17 @@ test("isYouTubeSabr detects sabr=1 and POST videoplayback requests only", () => 
 test("SABR traffic is reported to the tab and cleared on navigation", async () => {
   const m = await loadBackground();
   const sender = m.senders.tab(7, "https://www.youtube.com/watch?v=abc");
-  assert.deepEqual((await m.sendMessage({ type: "pdm:mediaStatus" }, sender)).result, { sabr: false });
+  assert.deepEqual((await m.sendMessage({ type: "sdm:mediaStatus" }, sender)).result, { sabr: false });
 
   await m.emit("webRequest.onHeadersReceived", { tabId: 7, type: "xmlhttprequest", method: "POST", url: yt({ sabr: "1", rn: "1" }), statusCode: 200, responseHeaders: [] });
   await m.flush();
   await m.flush();
-  assert.deepEqual((await m.sendMessage({ type: "pdm:mediaStatus" }, sender)).result, { sabr: true });
-  assert.deepEqual((await m.sendMessage({ type: "pdm:getMedia", elementUrls: [] }, sender)).result, []);
-  assert.ok(m.calls.tabMessages.some((x) => x.tabId === 7 && x.msg.type === "pdm:mediaFound"));
-  assert.deepEqual((await m.sendMessage({ type: "pdm:mediaStatus" }, m.senders.tab(8))).result, { sabr: false });
+  assert.deepEqual((await m.sendMessage({ type: "sdm:mediaStatus" }, sender)).result, { sabr: true });
+  assert.deepEqual((await m.sendMessage({ type: "sdm:getMedia", elementUrls: [] }, sender)).result, []);
+  assert.ok(m.calls.tabMessages.some((x) => x.tabId === 7 && x.msg.type === "sdm:mediaFound"));
+  assert.deepEqual((await m.sendMessage({ type: "sdm:mediaStatus" }, m.senders.tab(8))).result, { sabr: false });
 
   await m.emit("webRequest.onHeadersReceived", { tabId: 7, type: "main_frame", method: "GET", url: "https://www.youtube.com/", statusCode: 200, responseHeaders: [] });
   await m.flush();
-  assert.deepEqual((await m.sendMessage({ type: "pdm:mediaStatus" }, sender)).result, { sabr: false });
+  assert.deepEqual((await m.sendMessage({ type: "sdm:mediaStatus" }, sender)).result, { sabr: false });
 });

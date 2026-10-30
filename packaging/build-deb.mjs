@@ -9,9 +9,9 @@ import { parseArgs } from "node:util";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "..");
-const PKG = "pdm-download-manager";
-const PREFIX = "/opt/pdm";
-const HOST_NAME = "com.pdm.ffmpeg";
+const PKG = "sdm-download-manager";
+const PREFIX = "/opt/sdm";
+const HOST_NAME = "com.sdm.ffmpeg";
 const MAINTAINER = "Swaraj <swaraj@mislbd.com>";
 
 const BROWSERS = {
@@ -23,7 +23,7 @@ const BROWSERS = {
 
 const { values: opts } = parseArgs({
   options: {
-    key: { type: "string", default: join(HERE, "pdm-extension.pem") },
+    key: { type: "string", default: join(HERE, "sdm-extension.pem") },
     out: { type: "string", default: join(ROOT, "dist") },
   },
 });
@@ -90,8 +90,8 @@ function duKb(dir) {
 }
 
 const LAUNCHER = `#!/bin/sh
-[ -r /etc/pdm/helper.conf ] && . /etc/pdm/helper.conf
-user_conf="\${XDG_CONFIG_HOME:-$HOME/.config}/pdm/helper.conf"
+[ -r /etc/sdm/helper.conf ] && . /etc/sdm/helper.conf
+user_conf="\${XDG_CONFIG_HOME:-$HOME/.config}/sdm/helper.conf"
 [ -r "$user_conf" ] && . "$user_conf"
 PATH="$PATH:$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
 
@@ -99,39 +99,39 @@ node_ok() {
   [ -n "$1" ] && [ -x "$1" ] && "$1" -e 'process.exit(+process.versions.node.split(".")[0] >= 20 ? 0 : 1)' 2>/dev/null
 }
 
-if ! node_ok "\${PDM_NODE:-}"; then
-  PDM_NODE=
+if ! node_ok "\${SDM_NODE:-}"; then
+  SDM_NODE=
   for n in "$(command -v node 2>/dev/null)" /usr/local/bin/node $(ls -d "$HOME"/.nvm/versions/node/*/bin/node 2>/dev/null | sort -rV) "$HOME/.volta/bin/node" /usr/bin/node; do
-    if node_ok "$n"; then PDM_NODE=$n; break; fi
+    if node_ok "$n"; then SDM_NODE=$n; break; fi
   done
 fi
-if [ -z "$PDM_NODE" ]; then
-  echo "pdm-ffmpeg-host: Node.js 20 or newer not found. Set PDM_NODE in /etc/pdm/helper.conf or ~/.config/pdm/helper.conf" >&2
+if [ -z "$SDM_NODE" ]; then
+  echo "sdm-ffmpeg-host: Node.js 20 or newer not found. Set SDM_NODE in /etc/sdm/helper.conf or ~/.config/sdm/helper.conf" >&2
   exit 1
 fi
 
-: "\${PDM_FFMPEG:=$(command -v ffmpeg 2>/dev/null || echo ffmpeg)}"
-: "\${PDM_YTDLP:=$(command -v yt-dlp 2>/dev/null || echo yt-dlp)}"
-: "\${PDM_OUTPUT_DIR:=$HOME/Downloads}"
-export PDM_FFMPEG PDM_YTDLP PDM_OUTPUT_DIR
-exec "$PDM_NODE" ${PREFIX}/native/pdm-ffmpeg-host.mjs "$@"
+: "\${SDM_FFMPEG:=$(command -v ffmpeg 2>/dev/null || echo ffmpeg)}"
+: "\${SDM_YTDLP:=$(command -v yt-dlp 2>/dev/null || echo yt-dlp)}"
+: "\${SDM_OUTPUT_DIR:=$HOME/Downloads}"
+export SDM_FFMPEG SDM_YTDLP SDM_OUTPUT_DIR
+exec "$SDM_NODE" ${PREFIX}/native/sdm-ffmpeg-host.mjs "$@"
 `;
 
-const HELPER_CONF = `# Settings for the PDM FFmpeg / yt-dlp helper (shell syntax).
-# Per-user overrides go in ~/.config/pdm/helper.conf.
+const HELPER_CONF = `# Settings for the SDM FFmpeg / yt-dlp helper (shell syntax).
+# Per-user overrides go in ~/.config/sdm/helper.conf.
 # Unset values are detected automatically from PATH and ~/.local/bin.
 #
-# PDM_NODE=/usr/local/bin/node        # Node.js 20 or newer
-# PDM_FFMPEG=/usr/bin/ffmpeg          # ffprobe must sit next to it
-# PDM_YTDLP=/usr/local/bin/yt-dlp
-# PDM_OUTPUT_DIR="$HOME/Downloads"    # root folder for yt-dlp downloads
+# SDM_NODE=/usr/local/bin/node        # Node.js 20 or newer
+# SDM_FFMPEG=/usr/bin/ffmpeg          # ffprobe must sit next to it
+# SDM_YTDLP=/usr/local/bin/yt-dlp
+# SDM_OUTPUT_DIR="$HOME/Downloads"    # root folder for yt-dlp downloads
 `;
 
 const manifest = JSON.parse(readFileSync(join(ROOT, "manifest.json"), "utf8"));
 const version = manifest.version;
 const privateKey = loadKey(resolve(opts.key));
 
-const work = mkdtempSync(join(tmpdir(), "pdm-build-"));
+const work = mkdtempSync(join(tmpdir(), "sdm-build-"));
 rmSync(join(opts.out, "build"), { recursive: true, force: true });
 const stage = join(work, "extension");
 mkdirSync(stage, { recursive: true });
@@ -145,19 +145,19 @@ const { id, crx } = buildCrx(readFileSync(zipPath), privateKey);
 if (id !== probeId) throw new Error("extension ID mismatch");
 
 const root = join(work, "deb");
-write(root, `${PREFIX}/pdm.crx`, crx);
+write(root, `${PREFIX}/sdm.crx`, crx);
 write(root, `${PREFIX}/updates.xml`, `<?xml version='1.0' encoding='UTF-8'?>
 <gupdate xmlns='http://www.google.com/update2/response' protocol='2.0'>
   <app appid='${id}'>
-    <updatecheck codebase='file://${PREFIX}/pdm.crx' version='${version}' />
+    <updatecheck codebase='file://${PREFIX}/sdm.crx' version='${version}' />
   </app>
 </gupdate>
 `);
-for (const name of ["pdm-ffmpeg-host.mjs", "ffmpeg-host-lib.mjs", "ytdlp-lib.mjs"]) {
+for (const name of ["sdm-ffmpeg-host.mjs", "ffmpeg-host-lib.mjs", "ytdlp-lib.mjs"]) {
   write(root, `${PREFIX}/native/${name}`, readFileSync(join(ROOT, "native", name)));
 }
-write(root, `${PREFIX}/bin/pdm-ffmpeg-host`, LAUNCHER, 0o755);
-write(root, "/etc/pdm/helper.conf", HELPER_CONF);
+write(root, `${PREFIX}/bin/sdm-ffmpeg-host`, LAUNCHER, 0o755);
+write(root, "/etc/sdm/helper.conf", HELPER_CONF);
 
 const policy = {
   ExtensionSettings: {
@@ -166,13 +166,13 @@ const policy = {
 };
 const hostManifest = {
   name: HOST_NAME,
-  description: "PDM FFmpeg helper: merge video and audio, extract audio, yt-dlp downloads",
-  path: `${PREFIX}/bin/pdm-ffmpeg-host`,
+  description: "SDM FFmpeg helper: merge video and audio, extract audio, yt-dlp downloads",
+  path: `${PREFIX}/bin/sdm-ffmpeg-host`,
   type: "stdio",
   allowed_origins: [`chrome-extension://${id}/`],
 };
 for (const { policies, hosts } of Object.values(BROWSERS)) {
-  write(root, `${policies}/pdm-download-manager.json`, `${JSON.stringify(policy, null, 2)}\n`);
+  write(root, `${policies}/sdm-download-manager.json`, `${JSON.stringify(policy, null, 2)}\n`);
   if (hosts) write(root, `${hosts}/${HOST_NAME}.json`, `${JSON.stringify(hostManifest, null, 2)}\n`);
 }
 
@@ -185,17 +185,17 @@ Priority: optional
 Installed-Size: ${duKb(root)}
 Recommends: ffmpeg
 Suggests: yt-dlp
-Description: Personal Download Manager browser extension
- Installs the Personal Download Manager extension into Google Chrome,
+Description: Super Download Manager browser extension
+ Installs the Super Download Manager extension into Google Chrome,
  Chromium, Microsoft Edge and Brave through browser policy, so it works
  without Developer mode. Also registers the native FFmpeg / yt-dlp helper
  (needs Node.js 20 or newer).
 `);
-write(root, "DEBIAN/conffiles", "/etc/pdm/helper.conf\n");
+write(root, "DEBIAN/conffiles", "/etc/sdm/helper.conf\n");
 write(root, "DEBIAN/postinst", `#!/bin/sh
 set -e
 if [ "$1" = configure ]; then
-  echo "Personal Download Manager installed (extension ID ${id})."
+  echo "Super Download Manager installed (extension ID ${id})."
   echo "Restart Chrome / Edge / Chromium / Brave to load it."
 fi
 `, 0o755);
@@ -204,8 +204,8 @@ for (const dir of [root]) run("chmod", ["-R", "u+rwX,go+rX,go-w", dir]);
 mkdirSync(opts.out, { recursive: true });
 const debPath = join(opts.out, `${PKG}_${version}_all.deb`);
 run("dpkg-deb", ["--root-owner-group", "-Zxz", "--build", root, debPath]);
-copyFileSync(join(work, "extension.zip"), join(opts.out, `pdm-extension-${version}.zip`));
-writeFileSync(join(opts.out, `pdm-extension-${version}.crx`), crx);
+copyFileSync(join(work, "extension.zip"), join(opts.out, `sdm-extension-${version}.zip`));
+writeFileSync(join(opts.out, `sdm-extension-${version}.crx`), crx);
 writeFileSync(join(opts.out, "extension-id.txt"), `${id}\n`);
 rmSync(work, { recursive: true, force: true });
 

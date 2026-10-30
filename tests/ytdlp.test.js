@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { join } from "node:path";
+import { resolve } from "node:path";
 import {
   checkUrl, createProgress, formatArgs, normalizeYtJob, outputDir, summarizeFormats, ytdlpArgs,
 } from "../native/ytdlp-lib.mjs";
@@ -18,9 +18,9 @@ test("checkUrl accepts http(s) only", () => {
 });
 
 test("outputDir stays inside the root", () => {
-  assert.equal(outputDir("/home/u/Downloads", "PDM/Video"), join("/home/u/Downloads", "PDM", "Video"));
-  assert.equal(outputDir("/home/u/Downloads", ""), "/home/u/Downloads");
-  for (const bad of ["../x", "PDM/../../etc", "a\\b", "a:b"]) assert.throws(() => outputDir("/home/u/Downloads", bad), /Invalid/);
+  assert.equal(outputDir("/home/u/Downloads", "SDM/Video"), resolve("/home/u/Downloads", "SDM", "Video"));
+  assert.equal(outputDir("/home/u/Downloads", ""), resolve("/home/u/Downloads"));
+  for (const bad of ["../x", "SDM/../../etc", "a\\b", "a:b"]) assert.throws(() => outputDir("/home/u/Downloads", bad), /Invalid/);
 });
 
 test("normalizeYtJob validates mode, quality, container and audio format", () => {
@@ -49,18 +49,20 @@ test("ytdlpArgs ignores config, never overwrites and ends with -- url", () => {
   assert.equal(args[args.indexOf("--ffmpeg-location") + 1], "/bin/ffmpeg");
   assert.equal(args[args.indexOf("--js-runtimes") + 1], "node:/bin/node");
   assert.ok(!ytdlpArgs({ url: WATCH, mode: "audio", audioFormat: "m4a" }, { dir: "/d", ffmpeg: "ffmpeg" }).includes("--ffmpeg-location"));
+  const win = ytdlpArgs({ url: WATCH, mode: "audio", audioFormat: "m4a" }, { dir: "C:\\d", ffmpeg: "C:\\ffmpeg\\bin\\ffmpeg.exe" });
+  assert.equal(win[win.indexOf("--ffmpeg-location") + 1], "C:\\ffmpeg\\bin\\ffmpeg.exe");
 });
 
 test("progress parser averages parts, tracks post-processing and output path", () => {
   const p = createProgress();
-  p.push("PDMF 137+140");
-  assert.equal(p.push("PDMP 137 50 100").progress, Math.min(0.97, 0.25 * 0.97));
-  assert.equal(p.push("PDMP 140 100 100").stage, "Downloading");
-  const merge = p.push("PDMPP Merger started");
+  p.push("SDMF 137+140");
+  assert.equal(p.push("SDMP 137 50 100").progress, Math.min(0.97, 0.25 * 0.97));
+  assert.equal(p.push("SDMP 140 100 100").stage, "Downloading");
+  const merge = p.push("SDMPP Merger started");
   assert.equal(merge.stage, "Merging");
   assert.equal(merge.progress, 0.97);
-  assert.equal(p.push("PDMP 140 NA NA"), null);
-  p.push("PDMOUT /d/Song [1080p].mp4");
+  assert.equal(p.push("SDMP 140 NA NA"), null);
+  p.push("SDMOUT /d/Song [1080p].mp4");
   assert.equal(p.output, "/d/Song [1080p].mp4");
   assert.equal(p.formats, "137+140");
 });
@@ -118,27 +120,27 @@ test("content scripts can start yt-dlp only for the YouTube tab they run in", as
   };
   const m = await loadBackground({ nativeHost });
 
-  const foreignPage = await m.sendMessage({ type: "pdm:ytDownload", mode: "audio", audioFormat: "mp3" }, m.senders.tab(7));
+  const foreignPage = await m.sendMessage({ type: "sdm:ytDownload", mode: "audio", audioFormat: "mp3" }, m.senders.tab(7));
   assert.match(foreignPage.error, /YouTube videos only/);
 
-  const presets = await m.sendMessage({ type: "pdm:ytPresets" }, m.senders.tab(7, WATCH));
+  const presets = await m.sendMessage({ type: "sdm:ytPresets" }, m.senders.tab(7, WATCH));
   assert.equal(presets.result.available, true);
   assert.ok(presets.result.presets.length >= 4);
 
-  const probe = await m.sendMessage({ type: "pdm:ytProbe", url: WATCH }, m.senders.tab(7, WATCH));
+  const probe = await m.sendMessage({ type: "sdm:ytProbe", url: WATCH }, m.senders.tab(7, WATCH));
   assert.equal(probe.error, "Forbidden");
 
   const ok = await m.sendMessage(
-    { type: "pdm:ytDownload", url: "https://evil.example/", mode: "video", quality: "720", container: "mp4" },
+    { type: "sdm:ytDownload", url: "https://evil.example/", mode: "video", quality: "720", container: "mp4" },
     m.senders.tab(7, WATCH),
   );
   assert.equal(ok.ok, true);
   const posted = () => m.calls.nativeMessages.filter((x) => x.type === "ytDownload");
   assert.equal(posted()[0].url, WATCH);
-  assert.equal(posted()[0].subdir, "PDM/Video");
+  assert.equal(posted()[0].subdir, "SDM/Video");
 
-  await m.sendMessage({ type: "pdm:ytDownload", url: WATCH, mode: "audio", audioFormat: "m4a" });
-  assert.equal(posted().at(-1).subdir, "PDM/Music");
+  await m.sendMessage({ type: "sdm:ytDownload", url: WATCH, mode: "audio", audioFormat: "m4a" });
+  assert.equal(posted().at(-1).subdir, "SDM/Music");
   await m.flush();
   assert.equal(seen.filter((x) => x.type === "ytDownload").length, 2);
 });

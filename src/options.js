@@ -34,7 +34,7 @@ function showStatus(text, isError = false) {
 }
 
 async function save(patch) {
-  const res = await chrome.runtime.sendMessage({ type: "pdm:setSettings", patch });
+  const res = await chrome.runtime.sendMessage({ type: "sdm:setSettings", patch });
   if (!res?.ok) return showStatus(res?.error || "Save failed", true);
   fill(res.result);
   showStatus("Saved");
@@ -47,6 +47,6 @@ form.addEventListener("submit", (e) => {
 
 document.getElementById("reset").addEventListener("click", () => save({ ...DEFAULT_SETTINGS }));
 
-const res = await chrome.runtime.sendMessage({ type: "pdm:getState" });
+const res = await chrome.runtime.sendMessage({ type: "sdm:getState" });
 if (res?.ok) fill(res.result.settings);
 else showStatus(res?.error || "Could not load settings", true);

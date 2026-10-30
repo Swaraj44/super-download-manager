@@ -19,11 +19,11 @@ const PP_STAGE = { Merger: "Merging", FFmpegMerger: "Merging", ExtractAudio: "Co
 const BAD_SEGMENT = /[<>:"\\|?*\u0000-\u001f\u007f]/;
 
 export function resolveYtdlp(env = process.env) {
-  return env.PDM_YTDLP?.trim() || "yt-dlp";
+  return env.SDM_YTDLP?.trim() || "yt-dlp";
 }
 
 export function resolveOutputDir(env = process.env) {
-  const dir = env.PDM_OUTPUT_DIR?.trim();
+  const dir = env.SDM_OUTPUT_DIR?.trim();
   return dir && isAbsolute(dir) ? dir : join(homedir(), "Downloads");
 }
 
@@ -79,7 +79,7 @@ function commonArgs({ ffmpeg, node }) {
   return [
     "--ignore-config", "--no-playlist",
     ...(node ? ["--js-runtimes", `node:${node}`] : []),
-    ...(ffmpeg && ffmpeg.includes("/") ? ["--ffmpeg-location", ffmpeg] : []),
+    ...(ffmpeg && /[\\/]/.test(ffmpeg) ? ["--ffmpeg-location", ffmpeg] : []),
   ];
 }
 
@@ -90,10 +90,10 @@ export function ytdlpArgs(job, { dir, ffmpeg, node }) {
     "--no-overwrites", "--newline", "--progress", "--embed-metadata",
     ...formatArgs(job),
     "-P", dir, "-o", template,
-    "--progress-template", "download:PDMP %(info.format_id)s %(progress.downloaded_bytes)s %(progress.total_bytes,progress.total_bytes_estimate)s",
-    "--progress-template", "postprocess:PDMPP %(progress.postprocessor)s %(progress.status)s",
-    "--print", "before_dl:PDMF %(format_id)s",
-    "--print", "after_move:PDMOUT %(filepath)s",
+    "--progress-template", "download:SDMP %(info.format_id)s %(progress.downloaded_bytes)s %(progress.total_bytes,progress.total_bytes_estimate)s",
+    "--progress-template", "postprocess:SDMPP %(progress.postprocessor)s %(progress.status)s",
+    "--print", "before_dl:SDMF %(format_id)s",
+    "--print", "after_move:SDMOUT %(filepath)s",
     "--no-simulate",
     "--", job.url,
   ];
@@ -120,26 +120,26 @@ export function createProgress() {
   state.push = (raw) => {
     const line = String(raw).trim();
     let m;
-    if ((m = /^PDMF (\S+)/.exec(line))) {
+    if ((m = /^SDMF (\S+)/.exec(line))) {
       state.formats = m[1];
       count = Math.max(1, m[1].split("+").length);
       parts.clear();
       return snapshot();
     }
-    if ((m = /^PDMP (\S+) (\S+) (\S+)/.exec(line))) {
+    if ((m = /^SDMP (\S+) (\S+) (\S+)/.exec(line))) {
       const done = Number(m[2]);
       const total = Number(m[3]);
       if (!Number.isFinite(done) || !(total > 0)) return null;
       parts.set(m[1], Math.min(1, done / total));
       return snapshot();
     }
-    if ((m = /^PDMPP (\S+) (\S+)/.exec(line))) {
+    if ((m = /^SDMPP (\S+) (\S+)/.exec(line))) {
       if (m[2] !== "started") return null;
       post = true;
       stage = PP_STAGE[m[1]] || "Finishing";
       return snapshot();
     }
-    if (line.startsWith("PDMOUT ")) state.output = line.slice(7).trim();
+    if (line.startsWith("SDMOUT ")) state.output = line.slice(7).trim();
     return null;
   };
   return state;
@@ -152,8 +152,13 @@ function errorText(text) {
 }
 
 function killTree(child) {
+  if (child.pid && process.platform === "win32") {
+    spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore", windowsHide: true })
+      .on("error", () => child.kill("SIGTERM"));
+    return;
+  }
   try {
-    if (child.pid && process.platform !== "win32") process.kill(-child.pid, "SIGTERM");
+    if (child.pid) process.kill(-child.pid, "SIGTERM");
     else child.kill("SIGTERM");
   } catch {
     child.kill("SIGTERM");

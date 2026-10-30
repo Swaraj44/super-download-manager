@@ -1,6 +1,6 @@
 (() => {
-  if (globalThis.__pdmMediaButton) return;
-  globalThis.__pdmMediaButton = true;
+  if (globalThis.__sdmMediaButton) return;
+  globalThis.__sdmMediaButton = true;
 
   const MARGIN = 8;
   const HIDE_DELAY = 2500;
@@ -31,10 +31,10 @@
   let lastPoint = [0, 0];
 
   const host = document.createElement("div");
-  host.id = "pdm-media-host";
+  host.id = "sdm-media-host";
   host.style.cssText = "all:initial;position:fixed;top:0;left:0;width:0;height:0;z-index:2147483647;";
   const root = host.attachShadow({ mode: "open" });
-  root.innerHTML = `<style>${STYLE}</style><button class="btn" type="button" title="Download with PDM">${ICON}<span>Download</span></button><div class="menu" role="menu"></div>`;
+  root.innerHTML = `<style>${STYLE}</style><button class="btn" type="button" title="Download with SDM">${ICON}<span>Download</span></button><div class="menu" role="menu"></div>`;
   const btn = root.querySelector(".btn");
   const menu = root.querySelector(".menu");
 
@@ -60,7 +60,7 @@
   async function send(msg) {
     if (!alive()) {
       setEnabled(false);
-      throw new Error("PDM was updated. Reload the page.");
+      throw new Error("SDM was updated. Reload the page.");
     }
     const res = await chrome.runtime.sendMessage(msg);
     if (!res?.ok) throw new Error(res?.error || "Request failed");
@@ -190,14 +190,14 @@
   async function ytPresets() {
     const host = location.hostname.replace(/^www\.|^m\./, "");
     if (!/(^|\.)(youtube\.com|youtube-nocookie\.com|youtu\.be)$/.test(host)) return [];
-    const res = await send({ type: "pdm:ytPresets" }).catch(() => null);
+    const res = await send({ type: "sdm:ytPresets" }).catch(() => null);
     return res?.available ? res.presets : [];
   }
 
   async function downloadPreset(p) {
     try {
-      await send({ type: "pdm:ytDownload", mode: p.mode, quality: p.quality, container: p.container, audioFormat: p.audioFormat, title: document.title });
-      menu.replaceChildren(note(`yt-dlp started: ${p.name}. Progress shows in the PDM popup.`));
+      await send({ type: "sdm:ytDownload", mode: p.mode, quality: p.quality, container: p.container, audioFormat: p.audioFormat, title: document.title });
+      menu.replaceChildren(note(`yt-dlp started: ${p.name}. Progress shows in the SDM popup.`));
       setTimeout(() => {
         closeMenu();
         scheduleHide(1000);
@@ -214,7 +214,7 @@
     let items;
     let presets;
     try {
-      [items, presets] = await Promise.all([send({ type: "pdm:getMedia", elementUrls: sourcesOf(el) }), ytPresets()]);
+      [items, presets] = await Promise.all([send({ type: "sdm:getMedia", elementUrls: sourcesOf(el) }), ytPresets()]);
     } catch (err) {
       menu.replaceChildren(note(err.message));
       positionMenu();
@@ -236,24 +236,24 @@
   async function emptyReason(el) {
     const host = location.hostname.replace(/^www\.|^m\./, "");
     if (/(^|\.)(youtube\.com|youtube-nocookie\.com|youtu\.be)$/.test(host)) {
-      const status = await send({ type: "pdm:mediaStatus" }).catch(() => null);
+      const status = await send({ type: "sdm:mediaStatus" }).catch(() => null);
       if (status?.sabr) {
-        return "This video is streamed with YouTube's SABR protocol: the player POSTs for data and never requests a downloadable stream URL. PDM can't download it.";
+        return "This video is streamed with YouTube's SABR protocol: the player POSTs for data and never requests a downloadable stream URL. SDM can't download it.";
       }
       return "No YouTube streams seen yet. Play the video for a few seconds, then try again.";
     }
     const src = el.currentSrc || el.src || "";
     if (src.startsWith("blob:") || src.startsWith("mediastream:")) {
-      return "This player streams media in segments (no direct file). PDM can only download direct video and audio files.";
+      return "This player streams media in segments (no direct file). SDM can only download direct video and audio files.";
     }
     return "No downloadable source found yet. Start playback, then try again.";
   }
 
   async function download(item) {
     try {
-      const res = await send({ type: "pdm:downloadMedia", url: item.url, title: document.title });
+      const res = await send({ type: "sdm:downloadMedia", url: item.url, title: document.title });
       const extra = res?.urls?.length > 1 ? " (video and audio as separate files)" : "";
-      menu.replaceChildren(note(`Added to PDM: ${item.name}${extra}`));
+      menu.replaceChildren(note(`Added to SDM: ${item.name}${extra}`));
       setTimeout(() => {
         closeMenu();
         scheduleHide(1000);
@@ -332,14 +332,14 @@
   });
 
   chrome.runtime.onMessage.addListener((msg) => {
-    if (msg?.type === "pdm:mediaFound" && menuOpen) refreshMenu();
+    if (msg?.type === "sdm:mediaFound" && menuOpen) refreshMenu();
   });
 
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === "sync" && changes.settings) setEnabled(changes.settings.newValue?.mediaButton !== false);
   });
 
-  send({ type: "pdm:mediaConfig" })
+  send({ type: "sdm:mediaConfig" })
     .then((c) => setEnabled(c?.enabled))
     .catch(() => {});
 })();

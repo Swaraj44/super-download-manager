@@ -1,0 +1,12 @@
+body { margin: 0; font: 14px system-ui, sans-serif; color: #222; background: #f6f6f6; }
+main { max-width: 640px; margin: 24px auto; padding: 0 16px; }
+h1 { font-size: 20px; }
+fieldset { background: #fff; border: 1px solid #ddd; border-radius: 6px; margin: 0 0 16px; padding: 12px 16px; }
+legend { font-weight: 600; padding: 0 4px; }
+label { display: block; margin: 8px 0; }
+label small { color: #666; }
+textarea, input[type="text"], input[type="number"] { display: block; width: 100%; box-sizing: border-box; margin-top: 4px; padding: 4px 6px; font: inherit; }
+input[type="number"] { width: 140px; }
+.buttons { display: flex; gap: 8px; align-items: center; }
+#status { color: #2e7d32; }
+#status.error { color: #b00020; }

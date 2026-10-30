@@ -31,12 +31,12 @@ test("sanitizeSegment strips dangerous characters", () => {
 });
 
 test("buildTargetPath composes base folder, category and filename", () => {
-  assert.equal(buildTargetPath("song.mp3", "Music", { baseFolder: "PDM" }), "PDM/Music/song.mp3");
+  assert.equal(buildTargetPath("song.mp3", "Music", { baseFolder: "SDM" }), "SDM/Music/song.mp3");
   assert.equal(buildTargetPath("song.mp3", "Music", { baseFolder: "" }), "Music/song.mp3");
-  assert.equal(buildTargetPath("song.mp3", "Music", { baseFolder: "PDM", useCategoryFolders: false }), "PDM/song.mp3");
+  assert.equal(buildTargetPath("song.mp3", "Music", { baseFolder: "SDM", useCategoryFolders: false }), "SDM/song.mp3");
   assert.equal(
     buildTargetPath('ev"il.zip', "Compressed", { baseFolder: "a/b", useCategoryFolders: false }),
     "a/b/ev_il.zip",
   );
-  assert.equal(buildTargetPath("dir/sub/file.txt", "Documents", { baseFolder: "PDM" }), "PDM/Documents/file.txt");
+  assert.equal(buildTargetPath("dir/sub/file.txt", "Documents", { baseFolder: "SDM" }), "SDM/Documents/file.txt");
 });

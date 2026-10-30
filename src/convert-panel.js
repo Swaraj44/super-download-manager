@@ -65,7 +65,7 @@ async function loadFiles() {
 }
 
 async function checkHelper() {
-  const s = await send({ type: "pdm:converterStatus" });
+  const s = await send({ type: "sdm:converterStatus" });
   available = s.available;
   setStatus(s.available ? `Ready · ${s.ffmpeg}` : s.error, !s.available);
   syncButtons();
@@ -95,7 +95,7 @@ function renderJob(j) {
     const cancel = document.createElement("button");
     cancel.type = "button";
     cancel.textContent = "Cancel";
-    cancel.addEventListener("click", () => send({ type: "pdm:cancelConvert", id: j.id }).catch((err) => setStatus(err.message, true)));
+    cancel.addEventListener("click", () => send({ type: "sdm:cancelConvert", id: j.id }).catch((err) => setStatus(err.message, true)));
     const actions = document.createElement("div");
     actions.className = "actions";
     actions.append(cancel);
@@ -106,7 +106,7 @@ function renderJob(j) {
 
 async function renderJobs() {
   clearTimeout(poll);
-  const { converts: all = [] } = await send({ type: "pdm:getState" });
+  const { converts: all = [] } = await send({ type: "sdm:getState" });
   const converts = all.filter((j) => j.op !== "download");
   jobsEl.replaceChildren(...converts.slice().reverse().map(renderJob));
   if (panel.open && converts.some((j) => j.state === "running")) poll = setTimeout(() => renderJobs().catch(() => {}), 1000);
@@ -125,7 +125,7 @@ async function refresh() {
 async function start(form, msg) {
   form.querySelector("button").disabled = true;
   try {
-    await send({ type: "pdm:convert", ...msg });
+    await send({ type: "sdm:convert", ...msg });
     await renderJobs();
   } catch (err) {
     setStatus(err.message, true);

@@ -28,7 +28,7 @@ test("normalizeConvertRequest validates ids and formats", () => {
   assert.throws(() => normalizeConvertRequest(null), /Unknown/);
 });
 
-test("suggestPair prefers matching PDM YouTube track names", () => {
+test("suggestPair prefers matching SDM YouTube track names", () => {
   const items = [
     { id: 1, filename: "/d/Other [720p video].mp4" },
     { id: 2, filename: "/d/Cats [128k audio].m4a" },

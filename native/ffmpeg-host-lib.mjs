@@ -1,11 +1,11 @@
 import { spawn } from "node:child_process";
 import { mkdir, rm, stat } from "node:fs/promises";
-import { basename, dirname, extname, isAbsolute, join } from "node:path";
+import { basename, dirname, extname, isAbsolute, join, resolve } from "node:path";
 import {
   checkUrl, describeYtJob, normalizeYtJob, outputDir, probeArgs, probeYtdlp, runYtdlp, summarizeFormats, ytdlpArgs, ytdlpVersion,
 } from "./ytdlp-lib.mjs";
 
-export const HOST_NAME = "com.pdm.ffmpeg";
+export const HOST_NAME = "com.sdm.ffmpeg";
 export const HOST_VERSION = "1.1.0";
 export const PROBE_TIMEOUT = 90000;
 export const MAX_INCOMING = 64 * 1024;
@@ -44,7 +44,7 @@ const MUX_FLAGS = { mp4: ["-movflags", "+faststart"], m4a: ["-movflags", "+fasts
 const BASE_ARGS = ["-hide_banner", "-nostdin", "-n", "-nostats", "-progress", "pipe:1"];
 
 export function resolveFfmpeg(env = process.env) {
-  return env.PDM_FFMPEG?.trim() || "ffmpeg";
+  return env.SDM_FFMPEG?.trim() || "ffmpeg";
 }
 
 export function encodeMessage(obj) {
@@ -104,7 +104,7 @@ export function mergeOutputName(video, container) {
 export function extractOutputName(input, format) {
   const stem = stemOf(input);
   const out = join(dirname(input), `${stripTrack(stem) || stem}.${format}`);
-  return out === input ? join(dirname(input), `${stem} (audio).${format}`) : out;
+  return resolve(out) === resolve(input) ? join(dirname(input), `${stem} (audio).${format}`) : out;
 }
 
 const exists = (p) => stat(p).then(() => true, () => false);

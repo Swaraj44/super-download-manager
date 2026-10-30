@@ -14,7 +14,7 @@ function check(name, ok, detail = "") {
 
 function hostPing() {
   return new Promise((resolve, reject) => {
-    const p = spawn("/opt/pdm/bin/pdm-ffmpeg-host", [`chrome-extension://${ID}/`], { stdio: ["pipe", "pipe", "inherit"] });
+    const p = spawn("/opt/sdm/bin/sdm-ffmpeg-host", [`chrome-extension://${ID}/`], { stdio: ["pipe", "pipe", "inherit"] });
     let buf = Buffer.alloc(0);
     const timer = setTimeout(() => { p.kill(); reject(new Error("host ping timed out")); }, 30000);
     p.stdout.on("data", (d) => {
@@ -43,7 +43,7 @@ const server = createServer((req, res) => {
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${server.address().port}`;
 
-const root = mkdtempSync(join(tmpdir(), "pdm-deb-"));
+const root = mkdtempSync(join(tmpdir(), "sdm-deb-"));
 const profile = join(root, "profile");
 const downloads = join(root, "downloads");
 mkdirSync(join(profile, "Default"), { recursive: true });
@@ -55,7 +55,7 @@ writeFileSync(join(profile, "Default", "Preferences"), JSON.stringify({
 const chrome = spawn("google-chrome", [
   "--headless=new", "--remote-debugging-pipe", `--user-data-dir=${profile}`,
   "--no-first-run", "--no-default-browser-check", "--disable-gpu", "--disable-dev-shm-usage",
-  ...(process.env.PDM_CHROME_ARGS || "").split(" ").filter(Boolean), "about:blank",
+  ...(process.env.SDM_CHROME_ARGS || "").split(" ").filter(Boolean), "about:blank",
 ], { stdio: ["ignore", "ignore", "pipe", "pipe", "pipe"] });
 let stderr = "";
 chrome.stderr.on("data", (d) => { stderr += d; });
@@ -116,17 +116,17 @@ try {
   const { sessionId } = await send("Target.attachToTarget", { targetId, flatten: true });
   await waitFor(() => evaluate(sessionId, "document.readyState === 'complete'"), "popup load");
 
-  const state = await waitFor(() => evaluate(sessionId, "chrome.runtime.sendMessage({ type: 'pdm:getState' })"), "background");
-  check("background answers pdm:getState", state?.ok === true);
+  const state = await waitFor(() => evaluate(sessionId, "chrome.runtime.sendMessage({ type: 'sdm:getState' })"), "background");
+  check("background answers sdm:getState", state?.ok === true);
 
-  const status = await evaluate(sessionId, "chrome.runtime.sendMessage({ type: 'pdm:converterStatus' })");
+  const status = await evaluate(sessionId, "chrome.runtime.sendMessage({ type: 'sdm:converterStatus' })");
   check("extension reaches native helper (FFmpeg)", status?.ok && status.result.available, JSON.stringify(status?.result));
   check("extension reaches native helper (yt-dlp)", status?.ok && status.result.ytdlp, status?.result?.ytdlp || status?.result?.ytdlpError);
 
-  const add = await evaluate(sessionId, `chrome.runtime.sendMessage({ type: 'pdm:add', url: '${base}/files/pkg.zip' })`);
-  check("pdm:add accepted", add?.ok === true);
-  await waitFor(async () => listFiles(downloads).includes("PDM/Compressed/pkg.zip"), "download");
-  check("download saved to PDM/Compressed/pkg.zip", true);
+  const add = await evaluate(sessionId, `chrome.runtime.sendMessage({ type: 'sdm:add', url: '${base}/files/pkg.zip' })`);
+  check("sdm:add accepted", add?.ok === true);
+  await waitFor(async () => listFiles(downloads).includes("SDM/Compressed/pkg.zip"), "download");
+  check("download saved to SDM/Compressed/pkg.zip", true);
 } catch (err) {
   console.error("ERROR", err.message);
   console.error(stderr.split("\n").slice(-20).join("\n"));

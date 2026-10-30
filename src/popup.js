@@ -25,7 +25,7 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
   showError("");
   try {
-    await send({ type: "pdm:add", url: urlInput.value.trim() });
+    await send({ type: "sdm:add", url: urlInput.value.trim() });
     urlInput.value = "";
     render();
   } catch (err) {
@@ -35,7 +35,7 @@ form.addEventListener("submit", async (e) => {
 
 captureToggle.addEventListener("change", async () => {
   try {
-    await send({ type: "pdm:setSettings", patch: { enabled: captureToggle.checked } });
+    await send({ type: "sdm:setSettings", patch: { enabled: captureToggle.checked } });
   } catch (err) {
     showError(err.message);
   }
@@ -128,7 +128,7 @@ function renderQueue(pending) {
     url.className = "url";
     url.textContent = baseName("", job.url);
     url.title = job.url;
-    li.append(url, button("Remove", () => send({ type: "pdm:removeJob", id: job.id })));
+    li.append(url, button("Remove", () => send({ type: "sdm:removeJob", id: job.id })));
     return li;
   }));
 }
@@ -141,7 +141,7 @@ async function render() {
   try {
     const [items, state] = await Promise.all([
       chrome.downloads.search({ orderBy: ["-startTime"], limit: 30 }),
-      send({ type: "pdm:getState" }),
+      send({ type: "sdm:getState" }),
     ]);
     const metas = await chrome.storage.local.get(items.map((d) => metaKey(d.id)));
     captureToggle.checked = state.settings.enabled;

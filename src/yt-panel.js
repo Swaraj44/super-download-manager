@@ -74,7 +74,7 @@ function renderJob(j) {
     const cancel = document.createElement("button");
     cancel.type = "button";
     cancel.textContent = "Cancel";
-    cancel.addEventListener("click", () => send({ type: "pdm:cancelConvert", id: j.id }).catch((err) => setStatus(err.message, true)));
+    cancel.addEventListener("click", () => send({ type: "sdm:cancelConvert", id: j.id }).catch((err) => setStatus(err.message, true)));
     const actions = document.createElement("div");
     actions.className = "actions";
     actions.append(cancel);
@@ -85,7 +85,7 @@ function renderJob(j) {
 
 async function renderJobs() {
   clearTimeout(poll);
-  const { converts = [] } = await send({ type: "pdm:getState" });
+  const { converts = [] } = await send({ type: "sdm:getState" });
   const jobs = converts.filter((j) => j.op === "download");
   jobsEl.replaceChildren(...jobs.slice().reverse().map(renderJob));
   if (jobs.some((j) => j.state === "running")) poll = setTimeout(() => renderJobs().catch(() => {}), 1000);
@@ -101,7 +101,7 @@ async function refresh() {
   setStatus("Checking yt-dlp helper…");
   fillQualities();
   try {
-    const [s] = await Promise.all([send({ type: "pdm:converterStatus" }), prefillUrl(), renderJobs()]);
+    const [s] = await Promise.all([send({ type: "sdm:converterStatus" }), prefillUrl(), renderJobs()]);
     available = Boolean(s.ytdlp && s.ffmpeg);
     if (available) setStatus(`Ready · ${s.ytdlp} · ${s.ffmpeg}`);
     else setStatus(s.ytdlp ? s.error || "FFmpeg not found" : s.ytdlpError || s.error, true);
@@ -118,7 +118,7 @@ probeForm.addEventListener("submit", async (e) => {
   infoEl.hidden = false;
   infoEl.textContent = "Reading formats…";
   try {
-    const info = await send({ type: "pdm:ytProbe", url: pf.url.value.trim() });
+    const info = await send({ type: "sdm:ytProbe", url: pf.url.value.trim() });
     fillQualities(info.heights);
     const top = info.heights[0];
     const audio = info.audio[0];
@@ -141,7 +141,7 @@ form.addEventListener("submit", async (e) => {
   btn.disabled = true;
   try {
     await send({
-      type: "pdm:ytDownload",
+      type: "sdm:ytDownload",
       url: pf.url.value.trim(),
       title: infoEl.hidden ? "" : infoEl.textContent.split(" · ")[0],
       mode: f.mode.value,

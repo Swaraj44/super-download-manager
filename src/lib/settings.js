@@ -11,7 +11,7 @@ export const DEFAULT_FILE_TYPES = Object.freeze([
 export const DEFAULT_SETTINGS = Object.freeze({
   enabled: true,
   useCategoryFolders: true,
-  baseFolder: "PDM",
+  baseFolder: "SDM",
   minSizeKB: 0,
   maxConcurrent: 3,
   mediaButton: true,

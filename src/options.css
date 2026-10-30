@@ -10,3 +10,4 @@ input[type="number"] { width: 140px; }
 .buttons { display: flex; gap: 8px; align-items: center; }
 #status { color: #2e7d32; }
 #status.error { color: #b00020; }
+.credit { margin: 24px 0; text-align: center; font-size: 12px; color: #888; }

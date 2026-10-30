@@ -1,11 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Personal Download Manager",
+  "name": "Super Download Manager",
   "version": "0.5.0",
-  "description": "A lightweight personal download manager with capture rules, category folders, a download queue, a media download button and an optional FFmpeg merge helper.",
+  "description": "A lightweight super download manager with capture rules, category folders, a download queue, a media download button and an optional FFmpeg merge helper.",
+  "author": "Swaraj",
   "minimum_chrome_version": "109",
   "background": { "service_worker": "src/background.js", "type": "module" },
-  "action": { "default_title": "Personal Download Manager", "default_popup": "src/popup.html" },
+  "action": { "default_title": "Super Download Manager", "default_popup": "src/popup.html" },
   "options_ui": { "page": "src/options.html", "open_in_tab": true },
   "content_scripts": [
     {

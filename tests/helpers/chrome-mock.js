@@ -1,5 +1,5 @@
 export function createChromeMock({
-  extensionId = "pdm-test", inProgress = [], local = {}, sync = {}, session = {}, failUrls = [], downloadItems = [], nativeHost = null,
+  extensionId = "sdm-test", inProgress = [], local = {}, sync = {}, session = {}, failUrls = [], downloadItems = [], nativeHost = null,
 } = {}) {
   const listeners = {};
   const event = (name) => {
@@ -144,6 +144,6 @@ export async function loadBackground(options) {
   const mock = createChromeMock(options);
   globalThis.chrome = mock.chrome;
   await import(`../../src/background.js?instance=${++instance}`);
-  await mock.sendMessage({ type: "pdm:getState" });
+  await mock.sendMessage({ type: "sdm:getState" });
   return mock;
 }

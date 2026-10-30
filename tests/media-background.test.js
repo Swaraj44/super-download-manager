@@ -33,19 +33,19 @@ test("sniffed media is stored per tab and offered to that tab's content script",
   await sniff(m, response());
   await sniff(m, response({ tabId: 8, url: "https://other.com/x.mp4", statusCode: 200, responseHeaders: h({ "Content-Type": "video/mp4", "Content-Length": 5 * MB }) }));
 
-  const res = await m.sendMessage({ type: "pdm:getMedia", elementUrls: ["blob:https://cdn.example.com/abc"] }, m.senders.tab(7));
+  const res = await m.sendMessage({ type: "sdm:getMedia", elementUrls: ["blob:https://cdn.example.com/abc"] }, m.senders.tab(7));
   assert.equal(res.ok, true);
   assert.deepEqual(res.result.map((e) => e.url), ["https://cdn.example.com/v/movie.mp4"]);
   assert.equal(res.result[0].size, 20 * MB);
   assert.equal(res.result[0].label, "MP4 · 20.0 MB");
   assert.ok(m.chrome.storage.session.data["media:7"]);
-  assert.ok(m.calls.tabMessages.some((c) => c.tabId === 7 && c.msg.type === "pdm:mediaFound"));
+  assert.ok(m.calls.tabMessages.some((c) => c.tabId === 7 && c.msg.type === "sdm:mediaFound"));
 });
 
 test("player element sources are listed first", async () => {
   const m = await loadBackground();
   await sniff(m, response());
-  const res = await m.sendMessage({ type: "pdm:getMedia", elementUrls: ["https://cdn.example.com/direct.webm"] }, m.senders.tab(7));
+  const res = await m.sendMessage({ type: "sdm:getMedia", elementUrls: ["https://cdn.example.com/direct.webm"] }, m.senders.tab(7));
   assert.deepEqual(res.result.map((e) => e.name), ["direct.webm", "movie.mp4"]);
   assert.equal(res.result[0].fromPlayer, true);
 });
@@ -54,7 +54,7 @@ test("non-media and background requests are ignored", async () => {
   const m = await loadBackground();
   await sniff(m, response({ responseHeaders: h({ "Content-Type": "text/html", "Content-Length": 5 * MB }) }));
   await sniff(m, response({ tabId: -1 }));
-  const res = await m.sendMessage({ type: "pdm:getMedia", elementUrls: [] }, m.senders.tab(7));
+  const res = await m.sendMessage({ type: "sdm:getMedia", elementUrls: [] }, m.senders.tab(7));
   assert.deepEqual(res.result, []);
 });
 
@@ -62,7 +62,7 @@ test("main frame navigation clears the tab's media list", async () => {
   const m = await loadBackground();
   await sniff(m, response());
   await sniff(m, { tabId: 7, type: "main_frame", url: "https://cdn.example.com/next", statusCode: 200, responseHeaders: h({ "Content-Type": "text/html" }) });
-  const res = await m.sendMessage({ type: "pdm:getMedia", elementUrls: [] }, m.senders.tab(7));
+  const res = await m.sendMessage({ type: "sdm:getMedia", elementUrls: [] }, m.senders.tab(7));
   assert.deepEqual(res.result, []);
 });
 
@@ -76,34 +76,34 @@ test("closing a tab clears its media list", async () => {
 
 test("sniffing is disabled when the media button is off", async () => {
   const m = await loadBackground();
-  await m.sendMessage({ type: "pdm:setSettings", patch: { mediaButton: false } });
-  const cfg = await m.sendMessage({ type: "pdm:mediaConfig" }, m.senders.tab(7));
+  await m.sendMessage({ type: "sdm:setSettings", patch: { mediaButton: false } });
+  const cfg = await m.sendMessage({ type: "sdm:mediaConfig" }, m.senders.tab(7));
   assert.deepEqual(cfg.result, { enabled: false });
   await sniff(m, response());
-  const res = await m.sendMessage({ type: "pdm:getMedia", elementUrls: [] }, m.senders.tab(7));
+  const res = await m.sendMessage({ type: "sdm:getMedia", elementUrls: [] }, m.senders.tab(7));
   assert.deepEqual(res.result, []);
 });
 
-test("pdm:downloadMedia queues http media and rejects streams and blobs", async () => {
+test("sdm:downloadMedia queues http media and rejects streams and blobs", async () => {
   const m = await loadBackground();
-  const ok = await m.sendMessage({ type: "pdm:downloadMedia", url: "https://cdn.example.com/v/movie.mp4" }, m.senders.tab(7));
+  const ok = await m.sendMessage({ type: "sdm:downloadMedia", url: "https://cdn.example.com/v/movie.mp4" }, m.senders.tab(7));
   assert.equal(ok.ok, true);
   assert.equal(m.calls.downloads.at(-1).url, "https://cdn.example.com/v/movie.mp4");
 
-  const stream = await m.sendMessage({ type: "pdm:downloadMedia", url: "https://cdn.example.com/live/index.m3u8" }, m.senders.tab(7));
+  const stream = await m.sendMessage({ type: "sdm:downloadMedia", url: "https://cdn.example.com/live/index.m3u8" }, m.senders.tab(7));
   assert.equal(stream.ok, false);
   assert.match(stream.error, /Streaming/);
 
-  const blob = await m.sendMessage({ type: "pdm:downloadMedia", url: "blob:https://cdn.example.com/x" }, m.senders.tab(7));
+  const blob = await m.sendMessage({ type: "sdm:downloadMedia", url: "blob:https://cdn.example.com/x" }, m.senders.tab(7));
   assert.equal(blob.ok, false);
 
-  const data = await m.sendMessage({ type: "pdm:downloadMedia", url: "data:video/mp4,xx" }, m.senders.tab(7));
+  const data = await m.sendMessage({ type: "sdm:downloadMedia", url: "data:video/mp4,xx" }, m.senders.tab(7));
   assert.equal(data.ok, false);
 });
 
 test("content scripts cannot use extension-page-only messages", async () => {
   const m = await loadBackground();
-  for (const type of ["pdm:add", "pdm:getState", "pdm:setSettings", "pdm:removeJob"]) {
+  for (const type of ["sdm:add", "sdm:getState", "sdm:setSettings", "sdm:removeJob"]) {
     const res = await m.sendMessage({ type, url: "https://x.com/a.zip", patch: { enabled: false } }, m.senders.tab(7));
     assert.equal(res.ok, false, type);
     assert.equal(res.error, "Forbidden");
@@ -113,6 +113,6 @@ test("content scripts cannot use extension-page-only messages", async () => {
 
 test("messages from other extensions are rejected", async () => {
   const m = await loadBackground();
-  const res = await m.sendMessage({ type: "pdm:mediaConfig" }, m.senders.foreign);
+  const res = await m.sendMessage({ type: "sdm:mediaConfig" }, m.senders.foreign);
   assert.equal(res.error, "Forbidden");
 });

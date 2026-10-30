@@ -10,10 +10,10 @@ import {
 } from "../native/ffmpeg-host-lib.mjs";
 import { loadBackground } from "./helpers/chrome-mock.js";
 
-const FFMPEG = process.env.PDM_FFMPEG || "ffmpeg";
+const FFMPEG = process.env.SDM_FFMPEG || "ffmpeg";
 const HAVE_FFMPEG = spawnSync(FFMPEG, ["-hide_banner", "-version"]).status === 0;
-const needs = { skip: HAVE_FFMPEG ? false : "ffmpeg not available (set PDM_FFMPEG)" };
-const HOST = fileURLToPath(new URL("../native/pdm-ffmpeg-host.mjs", import.meta.url));
+const needs = { skip: HAVE_FFMPEG ? false : "ffmpeg not available (set SDM_FFMPEG)" };
+const HOST = fileURLToPath(new URL("../native/sdm-ffmpeg-host.mjs", import.meta.url));
 
 function ff(args) {
   const r = spawnSync(FFMPEG, ["-hide_banner", "-loglevel", "error", "-y", ...args]);
@@ -28,7 +28,7 @@ function streams(file) {
 let dir;
 function fixtures() {
   if (dir) return dir;
-  dir = mkdtempSync(join(tmpdir(), "pdm-ffmpeg-"));
+  dir = mkdtempSync(join(tmpdir(), "sdm-ffmpeg-"));
   const vsrc = ["-f", "lavfi", "-i", "testsrc=size=160x120:rate=10:duration=2"];
   const asrc = ["-f", "lavfi", "-i", "sine=frequency=440:duration=2"];
   ff([...vsrc, "-c:v", "libx264", "-pix_fmt", "yuv420p", join(dir, "Cats [1080p video].mp4")]);
@@ -83,12 +83,12 @@ test("argument builders use file: prefixes, no overwrite and stream maps", () =>
   assert.deepEqual(ex.slice(-4), ["0:a:0", "-c:a", "libmp3lame", "file:/a/x.mp3"]);
 });
 
-test("output names drop PDM track tags and never equal the input", () => {
-  assert.equal(mergeOutputName("/d/Cats [1080p video].mp4", "mp4"), "/d/Cats [1080p].mp4");
-  assert.equal(mergeOutputName("/d/clip.webm", "mkv"), "/d/clip (merged).mkv");
-  assert.equal(extractOutputName("/d/Cats [128k audio].m4a", "mp3"), "/d/Cats [128k].mp3");
-  assert.equal(extractOutputName("/d/song.m4a", "m4a"), "/d/song (audio).m4a");
-  assert.equal(extractOutputName("/d/movie.mp4", "mp3"), "/d/movie.mp3");
+test("output names drop SDM track tags and never equal the input", () => {
+  assert.equal(mergeOutputName("/d/Cats [1080p video].mp4", "mp4"), join("/d", "Cats [1080p].mp4"));
+  assert.equal(mergeOutputName("/d/clip.webm", "mkv"), join("/d", "clip (merged).mkv"));
+  assert.equal(extractOutputName("/d/Cats [128k audio].m4a", "mp3"), join("/d", "Cats [128k].mp3"));
+  assert.equal(extractOutputName("/d/song.m4a", "m4a"), join("/d", "song (audio).m4a"));
+  assert.equal(extractOutputName("/d/movie.mp4", "mp3"), join("/d", "movie.mp3"));
 });
 
 test("uniquePath avoids existing files", needs, async () => {
@@ -190,7 +190,7 @@ test("cancel stops a queued job", needs, async () => {
 });
 
 test("stdio host process answers framed ping", needs, async () => {
-  const child = spawn(process.execPath, [HOST], { env: { ...process.env, PDM_FFMPEG: FFMPEG }, stdio: ["pipe", "pipe", "inherit"] });
+  const child = spawn(process.execPath, [HOST], { env: { ...process.env, SDM_FFMPEG: FFMPEG }, stdio: ["pipe", "pipe", "inherit"] });
   const reader = new MessageReader();
   const reply = new Promise((resolve) => child.stdout.on("data", (d) => {
     const [m] = reader.push(d);
@@ -206,20 +206,20 @@ test("stdio host process answers framed ping", needs, async () => {
 
 test("background reports a missing helper with install instructions", async () => {
   const m = await loadBackground();
-  const res = await m.sendMessage({ type: "pdm:converterStatus" });
+  const res = await m.sendMessage({ type: "sdm:converterStatus" });
   assert.equal(res.ok, true);
   assert.equal(res.result.available, false);
-  assert.match(res.result.error, /native\/install\.mjs --extension-id pdm-test/);
-  assert.deepEqual(m.calls.native, ["com.pdm.ffmpeg"]);
+  assert.match(res.result.error, /native\/install\.mjs --extension-id sdm-test/);
+  assert.deepEqual(m.calls.native, ["com.sdm.ffmpeg"]);
 });
 
 test("convert messages are refused from web pages and validated", async () => {
   const m = await loadBackground();
-  for (const type of ["pdm:converterStatus", "pdm:convert", "pdm:cancelConvert"]) {
+  for (const type of ["sdm:converterStatus", "sdm:convert", "sdm:cancelConvert"]) {
     const res = await m.sendMessage({ type, op: "extract", inputId: 1, format: "mp3" }, m.senders.tab(7));
     assert.equal(res.error, "Forbidden", type);
   }
-  const bad = await m.sendMessage({ type: "pdm:convert", op: "extract", inputId: 99, format: "mp3" });
+  const bad = await m.sendMessage({ type: "sdm:convert", op: "extract", inputId: 99, format: "mp3" });
   assert.match(bad.error, /not a finished file/);
 });
 
@@ -232,20 +232,20 @@ test("background merges two finished downloads through the real host", needs, as
   ];
   const m = await loadBackground({ downloadItems, nativeHost: (reply) => createHost({ ffmpeg: FFMPEG, send: reply }).handle });
 
-  const status = (await m.sendMessage({ type: "pdm:converterStatus" })).result;
+  const status = (await m.sendMessage({ type: "sdm:converterStatus" })).result;
   assert.equal(status.available, true);
 
-  const notDone = await m.sendMessage({ type: "pdm:convert", op: "extract", inputId: 3, format: "mp3" });
+  const notDone = await m.sendMessage({ type: "sdm:convert", op: "extract", inputId: 3, format: "mp3" });
   assert.match(notDone.error, /not a finished file/);
 
-  const started = await m.sendMessage({ type: "pdm:convert", op: "merge", videoId: 1, audioId: 2, container: "mkv" });
+  const started = await m.sendMessage({ type: "sdm:convert", op: "merge", videoId: 1, audioId: 2, container: "mkv" });
   assert.equal(started.result.state, "running");
   const sent = m.calls.nativeMessages.find((x) => x.type === "merge");
   assert.deepEqual([sent.video, sent.audio, sent.container], [downloadItems[0].filename, downloadItems[1].filename, "mkv"]);
 
   let job;
   for (let i = 0; i < 200; i++) {
-    job = (await m.sendMessage({ type: "pdm:getState" })).result.converts.find((j) => j.id === started.result.id);
+    job = (await m.sendMessage({ type: "sdm:getState" })).result.converts.find((j) => j.id === started.result.id);
     if (job.state !== "running") break;
     await new Promise((r) => setTimeout(r, 50));
   }

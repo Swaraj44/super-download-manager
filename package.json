@@ -1,5 +1,5 @@
 {
-  "name": "pdm-extension",
+  "name": "sdm-extension",
   "version": "0.3.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,9 @@
     "integration": "node scripts/youtube-integration.mjs",
     "ytdlp-live": "node scripts/ytdlp-live.mjs",
     "build:deb": "node packaging/build-deb.mjs",
+    "build:win": "node packaging/build-windows.mjs",
     "test:deb": "sh packaging/test-deb-sandbox.sh",
-    "check": "for f in src/*.js src/lib/*.js src/content/*.js tests/*.js tests/helpers/*.js scripts/*.mjs native/*.mjs packaging/*.mjs packaging/test/*.mjs; do node --check \"$f\" || exit 1; done && node -e \"JSON.parse(require('fs').readFileSync('manifest.json','utf8'))\" && echo check-ok"
+    "test:win": "node packaging/test/e2e-windows.mjs",
+    "check": "node scripts/check.mjs"
   }
 }

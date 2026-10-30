@@ -11,11 +11,11 @@ const TIMEOUT_MS = 20000;
 const VIDEO_BYTES = 300 * 1024;
 const AUDIO_BYTES = 120 * 1024;
 
-const root = mkdtempSync(join(tmpdir(), "pdm-yt-"));
+const root = mkdtempSync(join(tmpdir(), "sdm-yt-"));
 const key = join(root, "key.pem");
 const cert = join(root, "cert.pem");
 const gen = spawnSync("openssl", [
-  "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-keyout", key, "-out", cert, "-days", "1", "-subj", "/CN=pdm-test",
+  "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-keyout", key, "-out", cert, "-days", "1", "-subj", "/CN=sdm-test",
   "-addext", "subjectAltName=DNS:www.youtube.com,DNS:*.googlevideo.com",
 ], { encoding: "utf8" });
 if (gen.status !== 0) {
@@ -146,10 +146,10 @@ function listFiles(dir, prefix = "") {
   });
 }
 
-const SHADOW = "document.getElementById('pdm-media-host').shadowRoot";
+const SHADOW = "document.getElementById('sdm-media-host').shadowRoot";
 
 async function openMenu(session, accept, label) {
-  await waitFor(() => evaluate(session, "document.body?.dataset.fetched === '1' && Boolean(document.getElementById('pdm-media-host'))"), `${label} page`);
+  await waitFor(() => evaluate(session, "document.body?.dataset.fetched === '1' && Boolean(document.getElementById('sdm-media-host'))"), `${label} page`);
   return waitFor(async () => {
     await send("Input.dispatchMouseEvent", { type: "mouseMoved", x: 200, y: 150 }, session);
     const state = await evaluate(session, `(() => {
@@ -194,7 +194,7 @@ try {
   check("video entry shows full size from clen and paired audio", /300\.0 KB/.test(videoItem.label) && /\+ audio file/.test(videoItem.label), videoItem.label);
 
   await evaluate(yt, `[...${SHADOW}.querySelectorAll('.item')].find((b) => b.textContent.includes('1080p')).click()`);
-  const want = ["PDM/Video/Cats [1080p video].mp4", "PDM/Music/Cats [128k audio].m4a"];
+  const want = ["SDM/Video/Cats [1080p video].mp4", "SDM/Music/Cats [128k audio].m4a"];
   await waitFor(() => want.every((f) => listFiles(downloads).includes(f)), "YouTube downloads");
   check("video saved with page title", true, want[0]);
   check("matching audio queued and saved", true, want[1]);

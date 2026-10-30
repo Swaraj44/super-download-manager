@@ -1,4 +1,4 @@
-export const NATIVE_HOST = "com.pdm.ffmpeg";
+export const NATIVE_HOST = "com.sdm.ffmpeg";
 
 export function createNativeClient(connect, lastError = () => "") {
   let port = null;

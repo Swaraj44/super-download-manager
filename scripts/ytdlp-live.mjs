@@ -7,10 +7,10 @@ import { fileURLToPath } from "node:url";
 import { encodeMessage, MessageReader } from "../native/ffmpeg-host-lib.mjs";
 
 const url = process.argv[2] || "https://www.youtube.com/watch?v=DS-raAyMxl4&list=RDDS-raAyMxl4&start_radio=1";
-const out = process.env.PDM_OUTPUT_DIR || mkdtempSync(join(tmpdir(), "pdm-ytdlp-"));
-const ffprobe = (process.env.PDM_FFMPEG || "ffmpeg").replace(/ffmpeg$/, "ffprobe");
-const host = spawn(process.execPath, [fileURLToPath(new URL("../native/pdm-ffmpeg-host.mjs", import.meta.url))], {
-  env: { ...process.env, PDM_OUTPUT_DIR: out },
+const out = process.env.SDM_OUTPUT_DIR || mkdtempSync(join(tmpdir(), "sdm-ytdlp-"));
+const ffprobe = (process.env.SDM_FFMPEG || "ffmpeg").replace(/ffmpeg$/, "ffprobe");
+const host = spawn(process.execPath, [fileURLToPath(new URL("../native/sdm-ffmpeg-host.mjs", import.meta.url))], {
+  env: { ...process.env, SDM_OUTPUT_DIR: out },
   stdio: ["pipe", "pipe", "inherit"],
 });
 const reader = new MessageReader();

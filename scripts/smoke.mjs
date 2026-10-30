@@ -35,7 +35,7 @@ const server = createServer((req, res) => {
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${server.address().port}`;
 
-const root = mkdtempSync(join(tmpdir(), "pdm-smoke-"));
+const root = mkdtempSync(join(tmpdir(), "sdm-smoke-"));
 const profile = join(root, "profile");
 const downloads = join(root, "downloads");
 mkdirSync(join(profile, "Default"), { recursive: true });
@@ -128,60 +128,60 @@ try {
   await waitFor(() => evaluate(popup.sessionId, "document.readyState === 'complete'"), "popup load");
 
   const state = await waitFor(
-    () => evaluate(popup.sessionId, "chrome.runtime.sendMessage({ type: 'pdm:getState' }).catch(() => null)"),
+    () => evaluate(popup.sessionId, "chrome.runtime.sendMessage({ type: 'sdm:getState' }).catch(() => null)"),
     "background ready",
   );
-  check("background answers pdm:getState", state?.ok === true && state.result.settings.enabled === true);
+  check("background answers sdm:getState", state?.ok === true && state.result.settings.enabled === true);
 
   const ids = await evaluate(popup.sessionId,
     "[...document.querySelectorAll('[id]')].map((e) => e.id).sort().join(',')");
   check("popup renders", ["add-form", "capture", "list", "queue"].every((id) => ids.split(",").includes(id)));
 
-  const bad = await evaluate(popup.sessionId, "chrome.runtime.sendMessage({ type: 'pdm:add', url: 'javascript:alert(1)' })");
+  const bad = await evaluate(popup.sessionId, "chrome.runtime.sendMessage({ type: 'sdm:add', url: 'javascript:alert(1)' })");
   check("rejects unsafe URL", bad?.ok === false, bad?.error);
 
   const add = await evaluate(popup.sessionId,
-    `chrome.runtime.sendMessage({ type: 'pdm:add', url: '${base}/files/manual.zip' })`);
-  check("pdm:add accepted", add?.ok === true);
-  await waitFor(() => listFiles(downloads).includes("PDM/Compressed/manual.zip"), "manual download");
-  check("manual add saved to PDM/Compressed/manual.zip", true);
+    `chrome.runtime.sendMessage({ type: 'sdm:add', url: '${base}/files/manual.zip' })`);
+  check("sdm:add accepted", add?.ok === true);
+  await waitFor(() => listFiles(downloads).includes("SDM/Compressed/manual.zip"), "manual download");
+  check("manual add saved to SDM/Compressed/manual.zip", true);
 
   const page = await openPage(`${base}/`);
   await sleep(500);
   await evaluate(page.sessionId, `location.href = '${base}/files/captured.zip'`).catch(() => { });
-  await waitFor(() => listFiles(downloads).includes("PDM/Compressed/captured.zip"), "captured download");
-  check("browser download captured into PDM/Compressed/captured.zip", true);
+  await waitFor(() => listFiles(downloads).includes("SDM/Compressed/captured.zip"), "captured download");
+  check("browser download captured into SDM/Compressed/captured.zip", true);
 
-  const off = await evaluate(popup.sessionId, "chrome.runtime.sendMessage({ type: 'pdm:setSettings', patch: { enabled: false } })");
+  const off = await evaluate(popup.sessionId, "chrome.runtime.sendMessage({ type: 'sdm:setSettings', patch: { enabled: false } })");
   check("capture can be disabled", off?.ok === true && off.result.enabled === false);
   const page2 = await openPage(`${base}/`);
   await sleep(500);
   await evaluate(page2.sessionId, `location.href = '${base}/files/ignored.zip'`).catch(() => { });
   await waitFor(() => listFiles(downloads).includes("ignored.zip"), "uncaptured download");
-  check("capture off leaves download in default folder", !listFiles(downloads).includes("PDM/Compressed/ignored.zip"));
+  check("capture off leaves download in default folder", !listFiles(downloads).includes("SDM/Compressed/ignored.zip"));
 
   const video = await openPage(`${base}/video.html`);
-  await waitFor(() => evaluate(video.sessionId, "Boolean(document.getElementById('pdm-media-host'))"), "media button host");
+  await waitFor(() => evaluate(video.sessionId, "Boolean(document.getElementById('sdm-media-host'))"), "media button host");
   check("content script injects media button host", true);
 
   const btnShown = await waitFor(async () => {
     await send("Input.dispatchMouseEvent", { type: "mouseMoved", x: 200, y: 150 }, video.sessionId);
     return evaluate(video.sessionId,
-      "document.getElementById('pdm-media-host').shadowRoot.querySelector('.btn').style.display === 'flex'");
+      "document.getElementById('sdm-media-host').shadowRoot.querySelector('.btn').style.display === 'flex'");
   }, "media button visible on hover");
   check("hovering the video shows the Download button", btnShown);
 
-  await evaluate(video.sessionId, "document.getElementById('pdm-media-host').shadowRoot.querySelector('.btn').click()");
+  await evaluate(video.sessionId, "document.getElementById('sdm-media-host').shadowRoot.querySelector('.btn').click()");
   const items = await waitFor(async () => {
     const v = await evaluate(video.sessionId,
-      "[...document.getElementById('pdm-media-host').shadowRoot.querySelectorAll('.item')].map((b) => b.textContent)");
+      "[...document.getElementById('sdm-media-host').shadowRoot.querySelectorAll('.item')].map((b) => b.textContent)");
     return v?.length ? v : null;
   }, "media menu items");
   check("menu lists the video source with sniffed size", items.some((t) => t.includes("clip.mp4") && t.includes("200.0 KB")), items.join(" | "));
 
-  await evaluate(video.sessionId, "document.getElementById('pdm-media-host').shadowRoot.querySelector('.item').click()");
-  await waitFor(() => listFiles(downloads).includes("PDM/Video/clip.mp4"), "media download");
-  check("media download saved to PDM/Video/clip.mp4", true);
+  await evaluate(video.sessionId, "document.getElementById('sdm-media-host').shadowRoot.querySelector('.item').click()");
+  await waitFor(() => listFiles(downloads).includes("SDM/Video/clip.mp4"), "media download");
+  check("media download saved to SDM/Video/clip.mp4", true);
 
   const opts = await openPage(`chrome-extension://${extId}/src/options.html`);
   const maxC = await waitFor(

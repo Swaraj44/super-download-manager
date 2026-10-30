@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "Super Download Manager",
+  "version": "0.5.0",
+  "description": "A lightweight super download manager with capture rules, category folders, a download queue, a media download button and an optional FFmpeg merge helper.",
+  "minimum_chrome_version": "109",
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Super Download Manager",
+    "default_popup": "src/popup.html"
+  },
+  "options_ui": {
+    "page": "src/options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "src/content/media-button.js"
+      ],
+      "all_frames": true,
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "downloads",
+    "contextMenus",
+    "storage",
+    "webRequest",
+    "nativeMessaging"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAs5GiTee/F3y8dO2yf8AnUAT1C9X9yKFQRlB52XG0vWM02gXK4QmF5gMWZJRDMQVAm1Q828ORcVoYouYJP8ReV1J6KuqxqDm26PeGocB6eQWapQYZdc9ISRMiB5WsylOUkJwWcnm4whntrNGKbtE74pZaRKi9FXD7GCdD8QT6G/6SI9tIZvsisPdJWNPBgJQ7+cGI/R/4dNQxNrMs/gGx1DFAqS01nNRKl34TaINA4LPjWAO6LbssGgqSOYOy7XjISsOfhkAi7GRsDEkcxzZbXfu1/yqnLwvFsqOeckeMtutYxrSifW67zKGCPtyL5J6GnqZ/123aKvBD+s1lDcDiGwIDAQAB"
+}
